@@ -1,25 +1,40 @@
 import tkinter as tk
 import logic
 
+# Logic sınıfını başlatıyoruz
+Settings_Logic = logic.SettingsLogic()
+Students_Logic = logic.StudentsLogic()
+
 root = tk.Tk()
 root.minsize(300,300)
 root.title("To Do List")
 root.iconbitmap("tick_icon.ico")
+root.config(bg=Settings_Logic.bg_color)
 
 font_label = ("Segoe UI", 11, "bold")
 font_entry = ("Segoe UI", 10)
-
-# Logic sınıfını başlatıyoruz
-Students_Logic = logic.StudentsLogic()
 
 def clear_window():
     for widget in root.winfo_children():
         widget.destroy()
     create_menubar()
 
+def set_dark_mode():
+    Settings_Logic.set_dark_mode()
+
+    root.config(bg=Settings_Logic.bg_color)
+    for widget in root.winfo_children():
+        try:
+            if isinstance(widget, (tk.Label, tk.Button)):
+                widget.config(bg=Settings_Logic.bg_color, fg=Settings_Logic.fg_color)
+            elif isinstance(widget, tk.Entry):
+                widget.config(bg="#333333", fg="white", insertbackground="white")
+        except:
+            pass
+
 def create_menubar():
     menubar = tk.Menu(root)
-
+    
     # Adding File Menu
     file = tk.Menu(menubar, tearoff = 0)
     menubar.add_cascade(label ='File', menu = file)
@@ -51,7 +66,7 @@ def create_menubar():
     menubar.add_cascade(label ='Help', menu = help_)
     help_.add_command(label ='Help', command = None, state="normal")
     help_.add_separator()
-    help_.add_command(label ='Settings', command = None, state="normal")
+    help_.add_command(label ='Settings', command = set_dark_mode, state="normal")
 
     root.config(menu = menubar)
 
@@ -60,11 +75,11 @@ class StudentsUI():
         clear_window()
 
         # --- ÖĞRENCİ BİLGİLERİ ---
-        tk.Label(root, text="Student Name:", font=font_label).grid(row=0, column=0, padx=5, pady=5)
+        tk.Label(root, text="Student Name:", font=font_label).grid(row=0, column=0, padx=5, pady=5, sticky="w")
         self.student_name = tk.Entry(root, font=font_entry)
         self.student_name.grid(row=0, column=1, padx=5, pady=5)
         
-        tk.Label(root, text="Student Surname:", font=font_label).grid(row=1, column=0, padx=5, pady=5)
+        tk.Label(root, text="Student Surname:", font=font_label).grid(row=1, column=0, padx=5, pady=5, sticky="w")
         self.student_surname = tk.Entry(root, font=font_entry)
         self.student_surname.grid(row=1, column=1, padx=5, pady=5)
 
