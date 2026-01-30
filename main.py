@@ -1,5 +1,8 @@
 import tkinter as tk
 import logic
+from matplotlib import pyplot
+from tkinter import messagebox 
+
 
 # Logic sınıfını başlatıyoruz
 Settings_Logic = logic.SettingsLogic()
@@ -18,19 +21,34 @@ def clear_window():
     for widget in root.winfo_children():
         widget.destroy()
     create_menubar()
+    
 
-def set_dark_mode():
-    Settings_Logic.set_dark_mode()
+def set_mode():
+    value = Settings_UI.v.get()
+    if value == "white":
+        Settings_Logic.set_white_mode()
 
-    root.config(bg=Settings_Logic.bg_color)
-    for widget in root.winfo_children():
-        try:
-            if isinstance(widget, (tk.Label, tk.Button)):
-                widget.config(bg=Settings_Logic.bg_color, fg=Settings_Logic.fg_color)
-            elif isinstance(widget, tk.Entry):
-                widget.config(bg="#333333", fg="white", insertbackground="white")
-        except:
-            pass
+        root.config(bg=Settings_Logic.bg_color)
+        for widget in root.winfo_children():
+            try:
+                if isinstance(widget, (tk.Label, tk.Button)):
+                    widget.config(bg=Settings_Logic.bg_color, fg=Settings_Logic.fg_color)
+                elif isinstance(widget, tk.Entry):
+                    widget.config(bg=Settings_Logic.bg_color, fg=Settings_Logic.fg_color)
+            except:
+                pass
+    elif value == "black":
+        Settings_Logic.set_dark_mode()
+
+        root.config(bg=Settings_Logic.bg_color)
+        for widget in root.winfo_children():
+            try:
+                if isinstance(widget, (tk.Label, tk.Button)):
+                    widget.config(bg=Settings_Logic.bg_color, fg=Settings_Logic.fg_color)
+                elif isinstance(widget, tk.Entry):
+                    widget.config(bg=Settings_Logic.bg_color, fg=Settings_Logic.fg_color)
+            except:
+                pass
 
 def create_menubar():
     menubar = tk.Menu(root)
@@ -58,15 +76,15 @@ def create_menubar():
     # Adding Student Management Menu
     file = tk.Menu(menubar, tearoff = 0)
     menubar.add_cascade(label ='Students', menu = file)
-    file.add_command(label ='Student', command = S_UI.show_students, state="normal")
-    file.add_command(label ='New Student', command = S_UI.add_student, state="normal")
+    file.add_command(label ='Student', command = Students_UI.show_students, state="normal")
+    file.add_command(label ='New Student', command = Students_UI.add_student, state="normal")
 
     # Adding Help Menu
-    help_ = tk.Menu(menubar, tearoff = 0)
-    menubar.add_cascade(label ='Help', menu = help_)
-    help_.add_command(label ='Help', command = None, state="normal")
-    help_.add_separator()
-    help_.add_command(label ='Settings', command = set_dark_mode, state="normal")
+    help = tk.Menu(menubar, tearoff = 0)
+    menubar.add_cascade(label ='Help', menu = help)
+    help.add_command(label ='Help', command = None, state="normal")
+    help.add_separator()
+    help.add_command(label ='Settings', command = Settings_UI.open_settings_menu, state="normal")
 
     root.config(menu = menubar)
 
@@ -141,15 +159,116 @@ class StudentsUI():
 
     def collect_and_save(self):
         # UI'daki verileri topla
+        if not isinstance(self.student_name.get(), str) or self.student_name.get().strip() == "":
+            messagebox.showerror("Error", "Enter a valid name.")
+            return None
+        if not isinstance(self.student_surname.get(), str) or self.student_surname.get().strip() == "":
+            messagebox.showerror("Error", "Enter a valid surname.")
+            return None
+
+        # Telefon numarası kontrolleri - önce string mi diye kontrol et, sonra uzunluk ve sayısal değer kontrolü
+        phone_str = str(self.student_phone.get()).strip()
+        if not phone_str.isdigit():
+            messagebox.showerror("Error", "Phone number must contain only digits.")
+            return None
+        if len(phone_str) != 11:
+            messagebox.showerror("Error", "Phone number must be 11 digits.")
+            return None
+
+        # Öğrenci ID kontrolü
+        if not str(self.student_id.get()).strip():
+            messagebox.showerror("Error", "Enter a valid student ID.")
+            return None
+
+        # Öğrenci sınıf kontrolü (grade)
+        grade_value = self.student_grade.get()
+        if not isinstance(grade_value, int):
+            messagebox.showerror("Error", "Enter a valid grade.")
+            return None
+
+        # Adres kontrolü
+        if not isinstance(self.student_address.get(), str) or self.student_address.get().strip() == "":
+            messagebox.showerror("Error", "Enter a valid address.")
+            return None
+
+        # Ebeveyn bilgileri kontrolleri
+        if not isinstance(self.parent_name.get(), str) or self.parent_name.get().strip() == "":
+            messagebox.showerror("Error", "Enter a valid parent name.")
+            return None
+        if not isinstance(self.parent_surname.get(), str) or self.parent_surname.get().strip() == "":
+            messagebox.showerror("Error", "Enter a valid parent surname.")
+            return None
+
+        # Ebeveyn mesleği
+        if not isinstance(self.parent_job.get(), str) or self.parent_job.get().strip() == "":
+            messagebox.showerror("Error", "Enter a valid parent occupation.")
+            return None
+
+        # Ebeveyn ilişkisi
+        if not isinstance(self.parent_rel.get(), str) or self.parent_rel.get().strip() == "":
+            messagebox.showerror("Error", "Enter a valid relationship.")
+            return None
+
+        # Ebeveyn geliri kontrolü
+        income_value = self.parent_income.get()
+        if not isinstance(income_value, (int, float, str)):
+            messagebox.showerror("Error", "Enter a valid income.")
+            return None
+        if isinstance(income_value, str):
+            try:
+                float(income_value)
+            except ValueError:
+                messagebox.showerror("Error", "Income must be a number.")
+                return None
+
+        # Kararlaştırılan ücret kontrolü
+        fee_value = self.agreed_fee.get()
+        if not isinstance(fee_value, (int, float, str)):
+            messagebox.showerror("Error", "Enter a valid fee.")
+            return None
+        if isinstance(fee_value, str):
+            try:
+                float(fee_value)
+            except ValueError:
+                messagebox.showerror("Error", "Fee must be a number.")
+                return None
+
+        # Ebeveyn telefon kontrolü
+        parent_phone_str = str(self.parent_phone.get()).strip()
+        if not parent_phone_str.isdigit():
+            messagebox.showerror("Error", "Parent phone number must contain only digits.")
+            return None
+        if len(parent_phone_str) != 11:
+            messagebox.showerror("Error", "Parent phone number must be 11 digits.")
+            return None
+
+        # Ebeveyn ID kontrolü
+        if not str(self.parent_id.get()).strip():
+            messagebox.showerror("Error", "Enter a valid parent ID.")
+            return None
+
+        # Ebeveyn adres kontrolü
+        if not isinstance(self.parent_address.get(), str) or self.parent_address.get().strip() == "":
+            messagebox.showerror("Error", "Enter a valid parent address.")
+            return None
+
+        # Tüm kontroller başarılı ise verileri topla
         info = {
-            "Student Name": self.student_name.get(), "Student Surname": self.student_surname.get(),
-            "Student_Phone": self.student_phone.get(), "Student ID": self.student_id.get(),
-            "Student Grade": self.student_grade.get(), "Student Adress": self.student_address.get(),
-            "Parent Name": self.parent_name.get(), "Parent Surname": self.parent_surname.get(),
-            "Parent Occupation": self.parent_job.get(), "Parent Relationship": self.parent_rel.get(),
-            "Parent Income": self.parent_income.get(), "Agreed Fee": self.agreed_fee.get(),
-            "Parent Phone": self.parent_phone.get(), "Parent ID": self.parent_id.get(),
-            "Parent Adress": self.parent_address.get()
+            "Student Name": self.student_name.get(), 
+            "Student Surname": self.student_surname.get(),
+            "Student_Phone": self.student_phone.get(), 
+            "Student ID": self.student_id.get(),
+            "Student Grade": self.student_grade.get(), 
+            "Student Address": self.student_address.get(),
+            "Parent Name": self.parent_name.get(), 
+            "Parent Surname": self.parent_surname.get(),
+            "Parent Occupation": self.parent_job.get(), 
+            "Parent Relationship": self.parent_rel.get(),
+            "Parent Income": self.parent_income.get(), 
+            "Agreed Fee": self.agreed_fee.get(),
+            "Parent Phone": self.parent_phone.get(), 
+            "Parent ID": self.parent_id.get(),
+            "Parent Address": self.parent_address.get()
         }
         
         # Logic tarafına gönder
@@ -193,6 +312,20 @@ class StudentsUI():
         tk.Label(root, text=f"Parent ID: {data[id]['Parent ID']}", font=font_label).grid(row=7, column=1, padx=5, pady=5, sticky="w")
         tk.Label(root, text=f"Parent Address: {data[id]['Parent Adress']}", font=font_label).grid(row=8, column=1, padx=5, pady=5, sticky="w")
 
-S_UI = StudentsUI()
+class SettingsUI():
+    def open_settings_menu(self):
+        clear_window()
+
+        tk.Label(root, text="Theme:", font=font_label).grid(row=0, column=0,padx=5, pady=5 ,sticky="w")
+        self.v = tk.StringVar(root, value="white")
+        tk.Radiobutton(root,text="White",variable=self.v,value="white",indicator=0,bg="white",fg="black",selectcolor="white",
+                       activebackground="white",activeforeground="#9B9B9B", command=set_mode).grid(row=0, column=1, ipady=5, padx=2, pady=5, ipadx=10)
+        tk.Radiobutton(root,text="Black",variable=self.v,value="black",indicator=0,bg="black",fg="white",selectcolor="black",
+                       activebackground="black",activeforeground="white", command=set_mode).grid(row=0, column=2, ipady=5, padx=2, pady=5, ipadx=10)
+
+
+
+Students_UI = StudentsUI()
+Settings_UI = SettingsUI()
 create_menubar()
 root.mainloop()
