@@ -7,7 +7,11 @@ class SettingsLogic():
     def set_dark_mode(self):
         self.bg_color = "black"
         self.fg_color = "white"
-
+        return self.bg_color, self.fg_color
+    def set_white_mode(self):
+        self.bg_color = "white"
+        self.fg_color = "black"
+        return self.bg_color, self.fg_color
             
 class StudentsLogic():
     def __init__(self):
